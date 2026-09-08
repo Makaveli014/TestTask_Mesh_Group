@@ -1,60 +1,60 @@
-# SAP Segmentation Import Module
+# Модуль импорта сегментации SAP
 
-This Go module imports segmentation data from a third-party ERP system into a PostgreSQL database.
+Данный модуль на языке Go предназначен для импорта данных о сегментации из внешней ERP-системы в базу данных PostgreSQL.
 
-## Features
-- **Configurable**: Uses `envconfig` for environment-based configuration.
-- **Idempotent**: Uses PostgreSQL `ON CONFLICT` (Upsert) to update existing records based on `address_sap_id`.
-- **Resilient**: Implements HTTP timeouts, pagination, and request intervals.
-- **Maintenance**: Automatically cleans up old log files based on a configurable age.
-- **Tested**: Includes unit tests for API and Log logic, and integration tests for Database operations.
+## Особенности
+- **Конфигурируемость**: Настройка через переменные окружения с помощью библиотеки `envconfig`.
+- **Идемпотентность**: Использование PostgreSQL `ON CONFLICT` (Upsert) для обновления существующих записей по полю `address_sap_id`.
+- **Отказоустойчивость**: Реализованы таймауты HTTP-запросов, пагинация данных и интервалы между запросами.
+- **Обслуживание**: Автоматическая очистка старых лог-файлов на основе настраиваемого срока хранения.
+- **Тестирование**: Включает юнит-тесты для логики API и очистки логов, а также интеграционные тесты для работы с БД.
 
-## Project Structure
-- `cmd/sap_segmentationd/main.go`: Entry point of the application.
-- `model/`: Data models and business logic (API client, DB operations, Log cleanup).
-- `setup/install.sql`: SQL migration to initialize the database schema.
-- `log/`: Directory where application logs are stored.
+## Структура проекта
+- `cmd/sap_segmentationd/main.go`: Точка входа в приложение.
+- `model/`: Модели данных и бизнес-логика (API-клиент, операции с БД, очистка логов).
+- `setup/install.sql`: SQL-миграция для инициализации схемы базы данных.
+- `log/`: Директория, в которой хранятся логи приложения.
 
-## Configuration
-The application is configured via environment variables. Defaults are provided in the code.
+## Конфигурация
+Приложение настраивается через переменные окружения. В коде предусмотрены значения по умолчанию.
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | DB Server IP | `127.0.0.1` |
-| `DB_PORT` | DB Server Port | `5432` |
-| `DB_NAME` | DB Name | `mesh_group` |
-| `DB_USER` | DB User | `postgres` |
-| `DB_PASSWORD` | DB Password | `postgres` |
-| `CONN_URI` | API Endpoint | `http://bsm.api.iql.ru/...` |
-| `CONN_AUTH_LOGIN_PWD` | API Auth (login:pwd) | `4Dfddf5:jKlljHGH` |
+| Переменная | Описание | Значение по умолчанию |
+|------------|-----------|-----------------------|
+| `DB_HOST` | IP адрес сервера БД | `127.0.0.1` |
+| `DB_PORT` | TCP порт сервера БД | `5432` |
+| `DB_NAME` | Название БД | `mesh_group` |
+| `DB_USER` | Имя пользователя БД | `postgres` |
+| `DB_PASSWORD` | Пароль пользователя БД | `postgres` |
+| `CONN_URI` | Эндпоинт API | `http://bsm.api.iql.ru/...` |
+| `CONN_AUTH_LOGIN_PWD` | Аутентификация API (логин:пароль) | `4Dfddf5:jKlljHGH` |
 | `CONN_USER_AGENT` | User Agent | `spacecount-test` |
-| `CONN_TIMEOUT` | API Timeout (sec) | `5` |
-| `CONN_INTERVAL` | Delay between batches (ms) | `1500` |
-| `IMPORT_BATCH_SIZE` | Records per batch | `50` |
-| `LOG_CLEANUP_MAX_AGE` | Log retention (days) | `7` |
+| `CONN_TIMEOUT` | Таймаут API (сек) | `5` |
+| `CONN_INTERVAL` | Задержка между пачками (мс) | `1500` |
+| `IMPORT_BATCH_SIZE` | Размер пачки данных | `50` |
+| `LOG_CLEANUP_MAX_AGE` | Срок хранения логов (дней) | `7` |
 
-## Getting Started
+## Быстрый старт
 
-### 1. Database Setup
-Run the migration script in your PostgreSQL instance:
+### 1. Настройка базы данных
+Выполните SQL-скрипт миграции в вашем экземпляре PostgreSQL:
 ```bash
 psql -U postgres -d mesh_group -f setup/install.sql
 ```
 
-### 2. Run the Application
+### 2. Запуск приложения
 ```bash
 go run cmd/sap_segmentationd/main.go
 ```
 
-### 3. Running Tests
-To run all tests (unit and integration):
+### 3. Запуск тестов
+Для запуска всех тестов (юнит- и интеграционных):
 ```bash
 go test ./...
 ```
-*Note: Integration tests require a running PostgreSQL instance with a `mesh_group_test` database.*
+*Примечание: Интеграционные тесты требуют запущенного экземпляра PostgreSQL с базой данных `mesh_group_test`.*
 
-## Best Practices Applied
-- **Dependency Injection**: The API client accepts an `http.Client` interface, making it easily mockable for unit tests.
-- **Transaction Management**: Batch inserts are wrapped in transactions for performance and consistency.
-- **Safe File I/O**: Log cleanup uses `os.ReadDir` and modification time checks to safely manage disk space.
-- **Modular Design**: Clear separation between configuration, data access, and application flow.
+## Примененные Best Practices
+- **Инверсия зависимостей (Dependency Injection)**: API-клиент принимает интерфейс `http.Client`, что позволяет легко подменять его «заглушками» (mock) в юнит-тестах.
+- **Управление транзакциями**: Пакетная вставка данных обернута в транзакции для повышения производительности и обеспечения целостности данных.
+- **Безопасная работа с файлами**: Очистка логов использует `os.ReadDir` и проверку времени модификации файлов для безопасного управления местом на диске.
+- **Модульный дизайн**: Четкое разделение между конфигурацией, доступом к данным и основным потоком управления приложением.
