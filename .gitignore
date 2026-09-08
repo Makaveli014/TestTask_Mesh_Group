@@ -1,0 +1,16 @@
+# IDEs
+.idea/
+*.swp
+*.swo
+
+# Logs
+log/
+*.log
+
+# Binaries
+bin/
+sap_segmentationd
+
+# OS
+.DS_Store
+Thumbs.db
